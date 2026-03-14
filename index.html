@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>phantom.gg · intelligence platform</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #0a0a0f;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            color: #fff;
+        }
+
+        .container {
+            max-width: 600px;
+            width: 100%;
+        }
+
+        .card {
+            background: rgba(20, 20, 30, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 32px;
+            padding: 40px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        .logo {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .logo h1 {
+            font-size: 48px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #a78bfa, #ec4899);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -1px;
+        }
+
+        .logo p {
+            color: #6b6b8b;
+            font-size: 14px;
+            margin-top: 8px;
+        }
+
+        .step {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .step-number {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, #a78bfa, #ec4899);
+            border-radius: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 14px;
+        }
+
+        .step-title {
+            font-weight: 600;
+            color: #fff;
+        }
+
+        .input-group {
+            margin-bottom: 24px;
+        }
+
+        .input-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 500;
+            color: #9ca3af;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .input-group input, 
+        .input-group select {
+            width: 100%;
+            padding: 16px 20px;
+            background: #1a1a24;
+            border: 1px solid #2a2a35;
+            border-radius: 16px;
+            font-size: 15px;
+            color: #fff;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.3s;
+        }
+
+        .input-group input:focus,
+        .input-group select:focus {
+            outline: none;
+            border-color: #a78bfa;
+            box-shadow: 0 0 0 3px rgba(167, 139, 250, 0.1);
+        }
+
+        .input-group input::placeholder {
+            color: #4b5563;
+        }
+
+        .options {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 32px;
+        }
+
+        .option {
+            flex: 1;
+            background: #1a1a24;
+            border: 1px solid #2a2a35;
+            border-radius: 20px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .option:hover {
+            border-color: #a78bfa;
+            background: #22222e;
+        }
+
+        .option.selected {
+            border-color: #a78bfa;
+            background: linear-gradient(135deg, rgba(167, 139, 250, 0.1), rgba(236, 72, 153, 0.1));
+        }
+
+        .option-icon {
+            font-size: 32px;
+            margin-bottom: 12px;
+        }
+
+        .option h3 {
+            font-size: 16px;
+            font-weight: 600;
+            color: #fff;
+            margin-bottom: 4px;
+        }
+
+        .option p {
+            font-size: 13px;
+            color: #9ca3af;
+        }
+
+        .btn {
+            width: 100%;
+            background: linear-gradient(135deg, #a78bfa, #ec4899);
+            color: white;
+            border: none;
+            padding: 18px;
+            border-radius: 100px;
+            font-weight: 600;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 16px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 20px 30px -10px rgba(167, 139, 250, 0.4);
+        }
+
+        .result {
+            margin-top: 32px;
+            padding: 24px;
+            background: #1a1a24;
+            border-radius: 24px;
+            border: 1px solid #2a2a35;
+            display: none;
+        }
+
+        .result.active {
+            display: block;
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .result-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #9ca3af;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 12px;
+        }
+
+        .link-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: #0f0f17;
+            border-radius: 100px;
+            padding: 4px 4px 4px 20px;
+            border: 1px solid #2a2a35;
+        }
+
+        .link-container input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: #fff;
+            font-size: 14px;
+            font-family: 'Inter', monospace;
+            outline: none;
+        }
+
+        .copy-btn {
+            background: linear-gradient(135deg, #a78bfa, #ec4899);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 100px;
+            font-weight: 600;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .copy-btn:hover {
+            opacity: 0.9;
+        }
+
+        .preview {
+            margin-top: 20px;
+            padding: 20px;
+            background: #0f0f17;
+            border-radius: 20px;
+            text-align: center;
+        }
+
+        .preview img {
+            width: 64px;
+            height: 64px;
+            border-radius: 32px;
+            margin-bottom: 12px;
+            opacity: 0.8;
+        }
+
+        .preview h4 {
+            font-size: 18px;
+            font-weight: 600;
+            color: #fff;
+            margin-bottom: 4px;
+        }
+
+        .preview p {
+            color: #9ca3af;
+            font-size: 13px;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: #1a1a24;
+            color: white;
+            padding: 16px 24px;
+            border-radius: 100px;
+            font-weight: 500;
+            border: 1px solid #2a2a35;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s;
+            z-index: 1000;
+        }
+
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .footer {
+            margin-top: 24px;
+            text-align: center;
+            color: #4b5563;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <div class="logo">
+                <h1>phantom.gg</h1>
+                <p>enterprise intelligence gathering</p>
+            </div>
+
+            <!-- Step 1: Webhook -->
+            <div class="step">
+                <div class="step-number">1</div>
+                <div class="step-title">Connect Discord Webhook</div>
+            </div>
+            
+            <div class="input-group">
+                <label>WEBHOOK URL</label>
+                <input type="url" id="webhookInput" placeholder="https://discord.com/api/webhooks/.../..." value="">
+            </div>
+
+            <!-- Step 2: Choose Type -->
+            <div class="step">
+                <div class="step-number">2</div>
+                <div class="step-title">Select Tracking Type</div>
+            </div>
+
+            <div class="options">
+                <div class="option selected" onclick="selectType('image')" id="optionImage">
+                    <div class="option-icon">🖼️</div>
+                    <h3>Image Pixel</h3>
+                    <p>1x1 invisible · best for emails</p>
+                </div>
+                <div class="option" onclick="selectType('link')" id="optionLink">
+                    <div class="option-icon">🔗</div>
+                    <h3>Tracking Link</h3>
+                    <p>Redirects after capture</p>
+                </div>
+            </div>
+
+            <!-- Step 3: Generate -->
+            <div class="step">
+                <div class="step-number">3</div>
+                <div class="step-title">Generate & Share</div>
+            </div>
+
+            <button class="btn" onclick="generateLink()" id="generateBtn">
+                <span>✨</span> GENERATE TRACKING LINK
+            </button>
+
+            <!-- Result -->
+            <div class="result" id="result">
+                <div class="result-label">YOUR TRACKING LINK</div>
+                <div class="link-container">
+                    <input type="text" id="trackingLink" readonly value="">
+                    <button class="copy-btn" onclick="copyLink()">COPY</button>
+                </div>
+                
+                <div class="preview" id="imagePreview">
+                    <img src="https://images.unsplash.com/photo-1611162617213-7d7a39e9b1d7?w=64&h=64&fit=crop" alt="">
+                    <h4>Image Pixel</h4>
+                    <p>1x1 transparent · use in &lt;img&gt; tags</p>
+                    <div style="background: #1a1a24; padding: 12px; border-radius: 12px; margin-top: 12px; font-family: monospace; font-size: 12px; color: #a78bfa;" id="imageCode"></div>
+                </div>
+
+                <div class="preview" id="linkPreview" style="display: none;">
+                    <h4>Tracking Link Active</h4>
+                    <p>Users will be redirected after capture</p>
+                    <div style="background: #1a1a24; padding: 12px; border-radius: 12px; margin-top: 12px; font-size: 13px;">
+                        <span style="color: #9ca3af;">Destination:</span> 
+                        <span id="redirectDisplay" style="color: #a78bfa;">https://example.com</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="footer">
+                phantom.gg · #codebyzzaremisauhasardgenrekzqfkd^spqdfs^pkfsfkfkd^s
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast">Link copied to clipboard!</div>
+
+    <script>
+        // Configuration
+        let selectedType = 'image';
+        let webhookUrl = localStorage.getItem('phantom_webhook') || '';
+        let generatedId = '';
+        let redirectUrl = '';
+
+        // Initialize
+        document.getElementById('webhookInput').value = webhookUrl;
+
+        // Check if we're being accessed as a tracking link
+        (function checkTracking() {
+            const params = new URLSearchParams(window.location.search);
+            const id = params.get('id');
+            
+            if (id) {
+                // This is a tracked visit - redirect to tracking page
+                window.location.href = 'track.html?id=' + id;
+            }
+        })();
+
+        function selectType(type) {
+            selectedType = type;
+            
+            // Update UI
+            document.getElementById('optionImage').classList.remove('selected');
+            document.getElementById('optionLink').classList.remove('selected');
+            
+            if (type === 'image') {
+                document.getElementById('optionImage').classList.add('selected');
+            } else {
+                document.getElementById('optionLink').classList.add('selected');
+            }
+
+            // Ask for redirect URL if link type
+            if (type === 'link') {
+                redirectUrl = prompt('Enter redirect URL (where users will go after tracking):', 'https://example.com');
+                if (!redirectUrl) {
+                    redirectUrl = 'https://example.com';
+                }
+            }
+        }
+
+        function generateLink() {
+            webhookUrl = document.getElementById('webhookInput').value;
+            
+            if (!webhookUrl) {
+                showToast('⚠️ Please enter Discord webhook URL');
+                return;
+            }
+
+            if (!isValidWebhook(webhookUrl)) {
+                showToast('❌ Invalid webhook URL');
+                return;
+            }
+
+            // Save webhook
+            localStorage.setItem('phantom_webhook', webhookUrl);
+
+            // Generate random ID like #codebyzzaremisauhasardgenrekzqfkd^spqdfs^pkfsfkfkd^s
+            const randomId = generateRandomId();
+            generatedId = randomId;
+
+            // Create base URL
+            const baseUrl = window.location.origin + window.location.pathname.replace('index.html', '');
+            let trackingUrl = '';
+
+            if (selectedType === 'image') {
+                trackingUrl = `${baseUrl}track.html?id=${randomId}&type=image`;
+                
+                // Show image preview
+                document.getElementById('imagePreview').style.display = 'block';
+                document.getElementById('linkPreview').style.display = 'none';
+                
+                // Generate HTML code
+                const imgCode = `<img src="${trackingUrl}" width="1" height="1" style="display:none">`;
+                document.getElementById('imageCode').textContent = imgCode;
+            } else {
+                // Add redirect to tracking URL
+                const encodedRedirect = encodeURIComponent(redirectUrl || 'https://example.com');
+                trackingUrl = `${baseUrl}track.html?id=${randomId}&type=link&redirect=${encodedRedirect}`;
+                
+                // Show link preview
+                document.getElementById('imagePreview').style.display = 'none';
+                document.getElementById('linkPreview').style.display = 'block';
+                document.getElementById('redirectDisplay').textContent = redirectUrl || 'https://example.com';
+            }
+
+            // Display link
+            document.getElementById('trackingLink').value = trackingUrl;
+            document.getElementById('result').classList.add('active');
+            
+            showToast('✅ Tracking link generated!');
+        }
+
+        function generateRandomId() {
+            // Generate ID like: #codebyzzaremisauhasardgenrekzqfkd^spqdfs^pkfsfkfkd^s
+            const chars = 'abcdefghijklmnopqrstuvwxyz';
+            const specials = '^$*+-_';
+            
+            let id = 'codeby';
+            
+            // Add random characters
+            for (let i = 0; i < 8; i++) {
+                id += chars[Math.floor(Math.random() * chars.length)];
+            }
+            
+            id += 'zzaremisauhasardgenrekz';
+            
+            for (let i = 0; i < 6; i++) {
+                id += chars[Math.floor(Math.random() * chars.length)];
+            }
+            
+            id += '^' + specials[Math.floor(Math.random() * specials.length)];
+            
+            for (let i = 0; i < 4; i++) {
+                id += chars[Math.floor(Math.random() * chars.length)];
+            }
+            
+            id += '^pkfsfkfkd^s';
+            
+            return id;
+        }
+
+        function copyLink() {
+            const input = document.getElementById('trackingLink');
+            input.select();
+            document.execCommand('copy');
+            showToast('📋 Link copied to clipboard!');
+        }
+
+        function isValidWebhook(url) {
+            return url && url.includes('discord.com/api/webhooks/');
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2000);
+        }
+
+        // Test webhook on input blur
+        document.getElementById('webhookInput').addEventListener('blur', async function() {
+            const url = this.value;
+            if (isValidWebhook(url)) {
+                const btn = document.getElementById('generateBtn');
+                const originalText = btn.innerHTML;
+                btn.innerHTML = '<span class="loading"></span> Testing...';
+                btn.disabled = true;
+
+                try {
+                    const response = await fetch(url, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            content: "🔌 **phantom.gg connected**",
+                            embeds: [{
+                                description: "Ready to capture intelligence",
+                                color: 0xa78bfa
+                            }]
+                        })
+                    });
+
+                    if (response.ok) {
+                        showToast('✅ Webhook connected!');
+                    }
+                } catch (e) {}
+
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>

